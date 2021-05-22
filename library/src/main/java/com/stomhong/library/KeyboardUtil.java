@@ -255,6 +255,9 @@ public class KeyboardUtil {
             Editable editable = ed.getText();
 //			if (editable.length()>=20)
 //				return;
+             if (editable.length() >= getMaxLength(ed)){
+                return;
+            }
             int start = ed.getSelectionStart();
             int end = ed.getSelectionEnd();
             String temp = editable.subSequence(0, start) + text.toString() + editable.subSequence(start, editable.length());
@@ -263,6 +266,28 @@ public class KeyboardUtil {
             Selection.setSelection(etext, start + 1);
         }
 
+         public int getMaxLength(EditText editText) {
+            int length = Integer.MAX_VALUE;
+            try {
+                InputFilter[] inputFilters = editText.getFilters();
+                for (InputFilter filter : inputFilters) {
+                    Class<?> c = filter.getClass();
+                    if (c.getName().equals("android.text.InputFilter$LengthFilter")) {
+                        Field[] f = c.getDeclaredFields();
+                        for (Field field : f) {
+                            if (field.getName().equals("mMax")) {
+                                field.setAccessible(true);
+                                length = (Integer) field.get(filter);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return length;
+        }
+        
         @Override
         public void onRelease(int primaryCode) {
             if (inputType != KeyboardUtil.INPUTTYPE_NUM_ABC
